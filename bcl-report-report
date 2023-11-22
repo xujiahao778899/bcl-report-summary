@@ -1,0 +1,26 @@
+library(getopt)
+library(dplyr)
+library(writexl)
+
+
+spec <- matrix(
+  c(
+    "help", "h", 0, "character",  "This is a index check",
+    "sample","s",1,"character","This is a sample path",
+    "bcl_PJ","bp",1,"character","This is a project path"),
+  byrow=TRUE, ncol=5)
+opt <- getopt(spec=spec)
+
+if( !is.null(opt$help)  || is.null(opt$sample)||is.null(opt$bcl_PJ)){
+  cat(paste(getopt(spec=spec, usage = T), "\n"))
+  quit()
+}
+
+sample1<-read.csv(paste0(opt$bcl_PJ,"_stat/split_reads.csv"))
+sample2<-read.csv(paste0(opt$bcl_PJ,"_stat/data/data_summary.csv"))
+sample3<-read.table(opt$sample,na.strings="",check.names=F,fill=T,head=T)
+colnames(sample3)[which(colnames(sample3)=="样品名称")]<-"sample"
+sample4<-left_join(sample3,sample1,by="sample")%>% 
+          left_join(., sample2, by = "sample")
+head(sample2)
+write.csv(sample4,paste0(opt$bcl_PJ,"_stat/summary.csv"),quote = F,row.names = F)
